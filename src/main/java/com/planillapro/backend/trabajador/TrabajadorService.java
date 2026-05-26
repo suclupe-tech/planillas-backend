@@ -2,10 +2,13 @@ package com.planillapro.backend.trabajador;
 
 import com.planillapro.backend.empresa.Empresa;
 import com.planillapro.backend.empresa.EmpresaRepository;
+import com.planillapro.backend.security.AuthenticatedUserService;
 import com.planillapro.backend.shared.exception.ResourceNotFoundException;
+import com.planillapro.backend.shared.exception.AccessDeniedAppException;
 import com.planillapro.backend.trabajador.dto.TrabajadorRequestDTO;
 import com.planillapro.backend.trabajador.dto.TrabajadorResponseDTO;
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 
@@ -14,16 +17,21 @@ public class TrabajadorService {
 
     private final TrabajadorRepository trabajadorRepository;
     private final EmpresaRepository empresaRepository;
+    private final AuthenticatedUserService authenticatedUserService;
 
     public TrabajadorService(
             TrabajadorRepository trabajadorRepository,
-            EmpresaRepository empresaRepository
+            EmpresaRepository empresaRepository,
+            AuthenticatedUserService authenticatedUserService
     ) {
         this.trabajadorRepository = trabajadorRepository;
         this.empresaRepository = empresaRepository;
+        this.authenticatedUserService = authenticatedUserService;
     }
 
     public TrabajadorResponseDTO crear(TrabajadorRequestDTO request) {
+        validarAccesoEmpresa(request.getEmpresaId());
+
         if (trabajadorRepository.existsByEmpresaIdAndTipoDocumentoAndNumeroDocumento(
                 request.getEmpresaId(),
                 request.getTipoDocumento(),
@@ -60,13 +68,26 @@ public class TrabajadorService {
     }
 
     public List<TrabajadorResponseDTO> listar() {
-        return trabajadorRepository.findAll()
+        String rolActual = authenticatedUserService.obtenerRolActual();
+
+        if ("SUPER_ADMIN".equals(rolActual)) {
+            return trabajadorRepository.findAll()
+                    .stream()
+                    .map(this::convertirAResponse)
+                    .toList();
+        }
+
+        Long empresaIdActual = authenticatedUserService.obtenerEmpresaIdActual();
+
+        return trabajadorRepository.findByEmpresaId(empresaIdActual)
                 .stream()
                 .map(this::convertirAResponse)
                 .toList();
     }
 
     public List<TrabajadorResponseDTO> listarPorEmpresa(Long empresaId) {
+        validarAccesoEmpresa(empresaId);
+
         return trabajadorRepository.findByEmpresaId(empresaId)
                 .stream()
                 .map(this::convertirAResponse)
@@ -77,7 +98,23 @@ public class TrabajadorService {
         Trabajador trabajador = trabajadorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Trabajador no encontrado"));
 
+        validarAccesoEmpresa(trabajador.getEmpresa().getId());
+
         return convertirAResponse(trabajador);
+    }
+
+    private void validarAccesoEmpresa(Long empresaId) {
+        String rolActual = authenticatedUserService.obtenerRolActual();
+
+        if ("SUPER_ADMIN".equals(rolActual)) {
+            return;
+        }
+
+        Long empresaIdActual = authenticatedUserService.obtenerEmpresaIdActual();
+
+        if (!empresaIdActual.equals(empresaId)) {
+            throw new AccessDeniedAppException("No tienes acceso a la información de esta empresa");
+        }
     }
 
     private TrabajadorResponseDTO convertirAResponse(Trabajador trabajador) {

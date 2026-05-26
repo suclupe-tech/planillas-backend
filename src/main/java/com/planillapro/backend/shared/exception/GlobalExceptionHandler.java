@@ -46,11 +46,25 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(AccessDeniedAppException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiErrorResponse handleAccessDeniedException(
+            AccessDeniedAppException exception,
+            HttpServletRequest request
+    ) {
+        return new ApiErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiErrorResponse handleRuntimeException(
-            RuntimeException exception,
-            HttpServletRequest request
+                RuntimeException exception,
+                HttpServletRequest request
     ) {
         return new ApiErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
