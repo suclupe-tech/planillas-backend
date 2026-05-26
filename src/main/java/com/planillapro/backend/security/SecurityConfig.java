@@ -33,6 +33,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/usuarios/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA")
                         .requestMatchers("/api/empresas/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA")
+                        .requestMatchers("/api/trabajadores/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
                         .requestMatchers("/api/roles/**").authenticated()
 
                         .anyRequest().authenticated()
