@@ -30,6 +30,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/health").permitAll()
+
+                        .requestMatchers("/api/usuarios/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA")
+                        .requestMatchers("/api/empresas/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA")
+                        .requestMatchers("/api/roles/**").authenticated()
+
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form.disable())
