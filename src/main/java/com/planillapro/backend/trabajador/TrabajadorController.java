@@ -55,4 +55,9 @@ public class TrabajadorController {
     ) {
         return trabajadorService.darDeBaja(id, fechaCese);
     }
+
+    @PatchMapping("/{id}/reactivar")
+    public TrabajadorResponseDTO reactivar(@PathVariable Long id) {
+        return trabajadorService.reactivar(id);
+    }
 }

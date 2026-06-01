@@ -167,6 +167,24 @@ public class TrabajadorService {
         return convertirAResponse(trabajadorActualizado);
     }
 
+    public TrabajadorResponseDTO reactivar(Long id) {
+        Trabajador trabajador = trabajadorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Trabajador no encontrado"));
+
+        validarAccesoEmpresa(trabajador.getEmpresa().getId());
+
+        if ("ACTIVO".equals(trabajador.getEstado())) {
+            throw new RuntimeException("El trabajador ya se encuentra activo");
+        }
+
+        trabajador.setEstado("ACTIVO");
+        trabajador.setFechaCese(null);
+
+        Trabajador trabajadorActualizado = trabajadorRepository.save(trabajador);
+
+        return convertirAResponse(trabajadorActualizado);
+    }
+
     private void validarAccesoEmpresa(Long empresaId) {
         String rolActual = authenticatedUserService.obtenerRolActual();
 
