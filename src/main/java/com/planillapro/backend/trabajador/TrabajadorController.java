@@ -5,6 +5,7 @@ import com.planillapro.backend.trabajador.dto.TrabajadorResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
 
 import java.util.List;
 
@@ -37,5 +38,21 @@ public class TrabajadorController {
     @GetMapping("/empresa/{empresaId}")
     public List<TrabajadorResponseDTO> listarPorEmpresa(@PathVariable Long empresaId) {
         return trabajadorService.listarPorEmpresa(empresaId);
+    }
+
+    @PutMapping("/{id}")
+    public TrabajadorResponseDTO actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody TrabajadorRequestDTO request
+    ) {
+        return trabajadorService.actualizar(id, request);
+    }
+
+    @PatchMapping("/{id}/baja")
+    public TrabajadorResponseDTO darDeBaja(
+            @PathVariable Long id,
+            @RequestParam LocalDate fechaCese
+    ) {
+        return trabajadorService.darDeBaja(id, fechaCese);
     }
 }

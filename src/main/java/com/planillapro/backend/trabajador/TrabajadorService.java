@@ -8,6 +8,7 @@ import com.planillapro.backend.shared.exception.AccessDeniedAppException;
 import com.planillapro.backend.trabajador.dto.TrabajadorRequestDTO;
 import com.planillapro.backend.trabajador.dto.TrabajadorResponseDTO;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
 
 
 import java.util.List;
@@ -101,6 +102,69 @@ public class TrabajadorService {
         validarAccesoEmpresa(trabajador.getEmpresa().getId());
 
         return convertirAResponse(trabajador);
+    }
+
+    public TrabajadorResponseDTO actualizar(Long id, TrabajadorRequestDTO request) {
+        Trabajador trabajador = trabajadorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Trabajador no encontrado"));
+
+        validarAccesoEmpresa(trabajador.getEmpresa().getId());
+        validarAccesoEmpresa(request.getEmpresaId());
+
+        if (!trabajador.getEmpresa().getId().equals(request.getEmpresaId())) {
+            throw new AccessDeniedAppException("No puedes cambiar el trabajador a otra empresa");
+        }
+
+        boolean documentoCambiado =
+                !trabajador.getTipoDocumento().equals(request.getTipoDocumento())
+                        || !trabajador.getNumeroDocumento().equals(request.getNumeroDocumento());
+
+        if (documentoCambiado &&
+                trabajadorRepository.existsByEmpresaIdAndTipoDocumentoAndNumeroDocumento(
+                        request.getEmpresaId(),
+                        request.getTipoDocumento(),
+                        request.getNumeroDocumento()
+                )) {
+            throw new RuntimeException("Ya existe un trabajador registrado con ese documento en esta empresa");
+        }
+
+        trabajador.setTipoDocumento(request.getTipoDocumento());
+        trabajador.setNumeroDocumento(request.getNumeroDocumento());
+        trabajador.setNombres(request.getNombres());
+        trabajador.setApellidos(request.getApellidos());
+        trabajador.setFechaNacimiento(request.getFechaNacimiento());
+        trabajador.setTelefono(request.getTelefono());
+        trabajador.setEmail(request.getEmail());
+        trabajador.setDireccion(request.getDireccion());
+        trabajador.setFechaIngreso(request.getFechaIngreso());
+        trabajador.setFechaCese(request.getFechaCese());
+        trabajador.setCargo(request.getCargo());
+        trabajador.setArea(request.getArea());
+        trabajador.setTipoContrato(request.getTipoContrato());
+        trabajador.setRegimenLaboral(request.getRegimenLaboral());
+        trabajador.setSueldoBase(request.getSueldoBase());
+
+        Trabajador trabajadorActualizado = trabajadorRepository.save(trabajador);
+
+        return convertirAResponse(trabajadorActualizado);
+    }
+
+    public TrabajadorResponseDTO darDeBaja(Long id, LocalDate fechaCese) {
+        Trabajador trabajador = trabajadorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Trabajador no encontrado"));
+
+        validarAccesoEmpresa(trabajador.getEmpresa().getId());
+
+        if ("INACTIVO".equals(trabajador.getEstado())) {
+            throw new RuntimeException("El trabajador ya se encuentra dado de baja");
+        }
+
+        trabajador.setEstado("INACTIVO");
+        trabajador.setFechaCese(fechaCese);
+
+        Trabajador trabajadorActualizado = trabajadorRepository.save(trabajador);
+
+        return convertirAResponse(trabajadorActualizado);
     }
 
     private void validarAccesoEmpresa(Long empresaId) {
