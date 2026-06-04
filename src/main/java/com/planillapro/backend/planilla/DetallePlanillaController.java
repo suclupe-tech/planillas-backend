@@ -68,4 +68,18 @@ public class DetallePlanillaController {
     ) {
         return detallePlanillaService.calcularResumenPeriodo(periodoPlanillaId);
     }
+
+    @PutMapping("/{id}")
+    public DetallePlanillaResponseDTO actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody DetallePlanillaRequestDTO request
+    ) {
+        return detallePlanillaService.actualizar(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminar(@PathVariable Long id) {
+        detallePlanillaService.eliminar(id);
+    }
 }

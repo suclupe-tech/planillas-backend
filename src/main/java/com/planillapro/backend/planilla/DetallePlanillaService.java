@@ -1,24 +1,23 @@
 package com.planillapro.backend.planilla;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.planillapro.backend.concepto.ConceptoPlanilla;
 import com.planillapro.backend.concepto.ConceptoPlanillaRepository;
 import com.planillapro.backend.periodo.PeriodoPlanilla;
 import com.planillapro.backend.periodo.PeriodoPlanillaRepository;
+import com.planillapro.backend.planilla.dto.DetallePlanillaRequestDTO;
+import com.planillapro.backend.planilla.dto.DetallePlanillaResponseDTO;
+import com.planillapro.backend.planilla.dto.ResumenPlanillaPeriodoDTO;
+import com.planillapro.backend.planilla.dto.ResumenPlanillaTrabajadorDTO;
 import com.planillapro.backend.security.AuthenticatedUserService;
 import com.planillapro.backend.shared.exception.AccessDeniedAppException;
 import com.planillapro.backend.shared.exception.ResourceNotFoundException;
 import com.planillapro.backend.trabajador.Trabajador;
 import com.planillapro.backend.trabajador.TrabajadorRepository;
-import com.planillapro.backend.planilla.dto.ResumenPlanillaTrabajadorDTO;
-import com.planillapro.backend.planilla.dto.ResumenPlanillaPeriodoDTO;
-import java.math.BigDecimal;
-
-import com.planillapro.backend.planilla.dto.DetallePlanillaRequestDTO;
-import com.planillapro.backend.planilla.dto.DetallePlanillaResponseDTO;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @Service
 public class DetallePlanillaService {
@@ -84,6 +83,77 @@ public class DetallePlanillaService {
         DetallePlanilla detalleGuardado = detallePlanillaRepository.save(detalle);
 
         return convertirAResponse(detalleGuardado);
+    }
+
+        public DetallePlanillaResponseDTO actualizar(Long id, DetallePlanillaRequestDTO request) {
+        DetallePlanilla detalle = detallePlanillaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Detalle de planilla no encontrado"));
+
+        PeriodoPlanilla periodoActual = detalle.getPeriodoPlanilla();
+
+        validarAccesoEmpresa(periodoActual.getEmpresa().getId());
+
+        if ("CERRADO".equals(periodoActual.getEstado())) {
+            throw new RuntimeException("No se puede modificar detalles de un periodo cerrado");
+        }
+
+        PeriodoPlanilla nuevoPeriodo = periodoPlanillaRepository.findById(request.getPeriodoPlanillaId())
+                .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
+
+        Trabajador trabajador = trabajadorRepository.findById(request.getTrabajadorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Trabajador no encontrado"));
+
+        ConceptoPlanilla concepto = conceptoPlanillaRepository.findById(request.getConceptoPlanillaId())
+                .orElseThrow(() -> new ResourceNotFoundException("Concepto de planilla no encontrado"));
+
+        validarAccesoEmpresa(nuevoPeriodo.getEmpresa().getId());
+        validarAccesoEmpresa(trabajador.getEmpresa().getId());
+
+        if ("CERRADO".equals(nuevoPeriodo.getEstado())) {
+            throw new RuntimeException("No se puede modificar detalles de un periodo cerrado");
+        }
+
+        if (!nuevoPeriodo.getEmpresa().getId().equals(trabajador.getEmpresa().getId())) {
+            throw new RuntimeException("El trabajador no pertenece a la empresa del periodo");
+        }
+
+        detallePlanillaRepository
+                .findByPeriodoPlanillaIdAndTrabajadorIdAndConceptoPlanillaId(
+                        request.getPeriodoPlanillaId(),
+                        request.getTrabajadorId(),
+                        request.getConceptoPlanillaId()
+                )
+                .ifPresent(detalleExistente -> {
+                    if (!detalleExistente.getId().equals(id)) {
+                        throw new RuntimeException("Ya existe este concepto registrado para el trabajador en este periodo");
+                    }
+                });
+
+        detalle.setPeriodoPlanilla(nuevoPeriodo);
+        detalle.setTrabajador(trabajador);
+        detalle.setConceptoPlanilla(concepto);
+        detalle.setTipo(concepto.getTipo());
+        detalle.setMonto(request.getMonto());
+        detalle.setObservacion(request.getObservacion());
+
+        DetallePlanilla detalleActualizado = detallePlanillaRepository.save(detalle);
+
+        return convertirAResponse(detalleActualizado);
+    }
+
+    public void eliminar(Long id) {
+        DetallePlanilla detalle = detallePlanillaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Detalle de planilla no encontrado"));
+
+        PeriodoPlanilla periodo = detalle.getPeriodoPlanilla();
+
+        validarAccesoEmpresa(periodo.getEmpresa().getId());
+
+        if ("CERRADO".equals(periodo.getEstado())) {
+            throw new RuntimeException("No se puede eliminar detalles de un periodo cerrado");
+        }
+
+        detallePlanillaRepository.delete(detalle);
     }
 
     public List<DetallePlanillaResponseDTO> listarPorPeriodo(Long periodoPlanillaId) {
