@@ -43,7 +43,7 @@ public class DetallePlanillaService {
     }
 
     public DetallePlanillaResponseDTO crear(DetallePlanillaRequestDTO request) {
-        PeriodoPlanilla periodo = periodoPlanillaRepository.findById(request.getPeriodoPlanillaId())
+        PeriodoPlanilla periodo = periodoPlanillaRepository.findById(request.       getPeriodoPlanillaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
 
         validarAccesoEmpresa(periodo.getEmpresa().getId());
@@ -85,7 +85,7 @@ public class DetallePlanillaService {
         return convertirAResponse(detalleGuardado);
     }
 
-        public DetallePlanillaResponseDTO actualizar(Long id, DetallePlanillaRequestDTO request) {
+    public DetallePlanillaResponseDTO actualizar(Long id, DetallePlanillaRequestDTO request) {
         DetallePlanilla detalle = detallePlanillaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Detalle de planilla no encontrado"));
 
@@ -258,7 +258,7 @@ public class DetallePlanillaService {
         return response;
     }
 
-        public ResumenPlanillaPeriodoDTO calcularResumenPeriodo(Long periodoPlanillaId) {
+    public ResumenPlanillaPeriodoDTO calcularResumenPeriodo(Long periodoPlanillaId) {
         PeriodoPlanilla periodo = periodoPlanillaRepository.findById(periodoPlanillaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
 
@@ -301,6 +301,46 @@ public class DetallePlanillaService {
         response.setTrabajadores(resumenTrabajadores);
 
         return response;
+    }
+
+    public ResumenPlanillaPeriodoDTO generarPlanillaPeriodo(Long periodoPlanillaId) {
+        PeriodoPlanilla periodo = periodoPlanillaRepository.findById(periodoPlanillaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
+
+        validarAccesoEmpresa(periodo.getEmpresa().getId());
+
+        if ("CERRADO".equals(periodo.getEstado())) {
+            throw new RuntimeException("No se puede generar una planilla en un periodo cerrado");
+        }
+
+        ConceptoPlanilla sueldoBasico = conceptoPlanillaRepository.findByCodigo("SUELDO_BASICO")
+                .orElseThrow(() -> new ResourceNotFoundException("Concepto SUELDO_BASICO no encontrado"));
+
+        List<Trabajador> trabajadoresActivos = trabajadorRepository
+                .findByEmpresaIdAndEstado(periodo.getEmpresa().getId(), "ACTIVO");
+
+        for (Trabajador trabajador : trabajadoresActivos) {
+            boolean yaExiste = detallePlanillaRepository
+                    .existsByPeriodoPlanillaIdAndTrabajadorIdAndConceptoPlanillaId(
+                            periodo.getId(),
+                            trabajador.getId(),
+                            sueldoBasico.getId()
+                    );
+
+            if (!yaExiste) {
+                DetallePlanilla detalle = new DetallePlanilla();
+                detalle.setPeriodoPlanilla(periodo);
+                detalle.setTrabajador(trabajador);
+                detalle.setConceptoPlanilla(sueldoBasico);
+                detalle.setTipo(sueldoBasico.getTipo());
+                detalle.setMonto(trabajador.getSueldoBase());
+                detalle.setObservacion("Generado automáticamente desde sueldo base del trabajador");
+
+                detallePlanillaRepository.save(detalle);
+            }
+        }
+
+        return calcularResumenPeriodo(periodoPlanillaId);
     }
 
     private void validarAccesoEmpresa(Long empresaId) {

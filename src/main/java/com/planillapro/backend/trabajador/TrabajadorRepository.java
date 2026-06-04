@@ -20,4 +20,6 @@ public interface TrabajadorRepository extends JpaRepository<Trabajador, Long> {
             String tipoDocumento,
             String numeroDocumento
     );
+
+    List<Trabajador> findByEmpresaIdAndEstado(Long empresaId, String estado);
 }

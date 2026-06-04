@@ -82,4 +82,11 @@ public class DetallePlanillaController {
     public void eliminar(@PathVariable Long id) {
         detallePlanillaService.eliminar(id);
     }
+
+    @PostMapping("/periodo/{periodoPlanillaId}/generar")
+    public ResumenPlanillaPeriodoDTO generarPlanillaPeriodo(
+            @PathVariable Long periodoPlanillaId
+    ) {
+        return detallePlanillaService.generarPlanillaPeriodo(periodoPlanillaId);
+    }
 }
