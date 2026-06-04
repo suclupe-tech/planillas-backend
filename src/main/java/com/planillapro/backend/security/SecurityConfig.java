@@ -8,6 +8,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 import com.planillapro.backend.security.jwt.JwtAuthenticationFilter;
 
@@ -36,9 +37,29 @@ public class SecurityConfig {
                         .requestMatchers("/api/trabajadores/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
                         .requestMatchers("/api/roles/**").authenticated()
 
-                        .requestMatchers("/api/conceptos-planilla/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
-                        .requestMatchers("/api/periodos-planilla/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
-                        .requestMatchers("/api/detalles-planilla/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
+                        .requestMatchers(HttpMethod.GET, "/api/conceptos-planilla/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
+
+                        .requestMatchers(HttpMethod.GET, "/api/periodos-planilla/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
+
+                        .requestMatchers(HttpMethod.POST, "/api/periodos-planilla/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
+
+                        .requestMatchers(HttpMethod.PATCH, "/api/periodos-planilla/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
+
+                        .requestMatchers(HttpMethod.GET, "/api/detalles-planilla/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
+
+                        .requestMatchers(HttpMethod.POST, "/api/detalles-planilla/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/detalles-planilla/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/detalles-planilla/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
 
                         .anyRequest().authenticated()
                 )
