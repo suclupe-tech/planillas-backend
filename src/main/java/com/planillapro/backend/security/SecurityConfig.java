@@ -36,6 +36,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/trabajadores/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
                         .requestMatchers("/api/roles/**").authenticated()
 
+                        .requestMatchers("/api/conceptos-planilla/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
+                        .requestMatchers("/api/periodos-planilla/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
+                        .requestMatchers("/api/detalles-planilla/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
+
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form.disable())
