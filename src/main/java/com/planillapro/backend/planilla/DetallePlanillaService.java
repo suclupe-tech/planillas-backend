@@ -30,19 +30,22 @@ public class DetallePlanillaService {
     private final TrabajadorRepository trabajadorRepository;
     private final ConceptoPlanillaRepository conceptoPlanillaRepository;
     private final AuthenticatedUserService authenticatedUserService;
+    private final AuditoriaPlanillaService auditoriaPlanillaService;
 
     public DetallePlanillaService(
             DetallePlanillaRepository detallePlanillaRepository,
             PeriodoPlanillaRepository periodoPlanillaRepository,
             TrabajadorRepository trabajadorRepository,
             ConceptoPlanillaRepository conceptoPlanillaRepository,
-            AuthenticatedUserService authenticatedUserService
+            AuthenticatedUserService authenticatedUserService,
+            AuditoriaPlanillaService auditoriaPlanillaService
     ) {
         this.detallePlanillaRepository = detallePlanillaRepository;
         this.periodoPlanillaRepository = periodoPlanillaRepository;
         this.trabajadorRepository = trabajadorRepository;
         this.conceptoPlanillaRepository = conceptoPlanillaRepository;
         this.authenticatedUserService = authenticatedUserService;
+        this.auditoriaPlanillaService = auditoriaPlanillaService;
     }
 
     public DetallePlanillaResponseDTO crear(DetallePlanillaRequestDTO request) {
