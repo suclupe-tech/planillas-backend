@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -19,6 +20,7 @@ public class BoletaPagoTrabajadorDTO {
     private String periodoNombre;
     private String periodoTipo;
     private String periodoEstado;
+    private LocalDate fechaEmision;
 
     private Long trabajadorId;
     private String trabajadorNombres;

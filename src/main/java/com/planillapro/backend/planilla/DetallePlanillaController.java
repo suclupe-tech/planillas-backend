@@ -8,6 +8,9 @@ import com.planillapro.backend.planilla.dto.ResumenPlanillaTrabajadorDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -16,9 +19,14 @@ import java.util.List;
 public class DetallePlanillaController {
 
     private final DetallePlanillaService detallePlanillaService;
+    private final BoletaPagoPdfService boletaPagoPdfService;
 
-    public DetallePlanillaController(DetallePlanillaService detallePlanillaService) {
+    public DetallePlanillaController(
+            DetallePlanillaService detallePlanillaService,
+            BoletaPagoPdfService boletaPagoPdfService
+    ) {
         this.detallePlanillaService = detallePlanillaService;
+        this.boletaPagoPdfService = boletaPagoPdfService;
     }
 
     @PostMapping
@@ -100,5 +108,23 @@ public class DetallePlanillaController {
                 periodoPlanillaId,
                 trabajadorId
         );
+    }
+    
+    @GetMapping("/periodo/{periodoPlanillaId}/trabajador/{trabajadorId}/boleta/pdf")
+    public ResponseEntity<byte[]> descargarBoletaPdf(
+            @PathVariable Long periodoPlanillaId,
+            @PathVariable Long trabajadorId
+    ) {
+        byte[] pdf = boletaPagoPdfService.generarPdfBoleta(
+                periodoPlanillaId,
+                trabajadorId
+        );
+
+        String nombreArchivo = "boleta-pago-" + periodoPlanillaId + "-" + trabajadorId + ".pdf";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + nombreArchivo)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 }

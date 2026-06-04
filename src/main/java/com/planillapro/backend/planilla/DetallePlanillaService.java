@@ -2,6 +2,7 @@ package com.planillapro.backend.planilla;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
 
@@ -401,6 +402,7 @@ public class DetallePlanillaService {
         response.setPeriodoNombre(periodo.getNombre());
         response.setPeriodoTipo(periodo.getTipo());
         response.setPeriodoEstado(periodo.getEstado());
+        response.setFechaEmision(LocalDate.now());
 
         response.setTrabajadorId(trabajador.getId());
         response.setTrabajadorNombres(trabajador.getNombres());
