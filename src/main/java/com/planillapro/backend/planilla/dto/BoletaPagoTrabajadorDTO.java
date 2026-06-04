@@ -27,8 +27,8 @@ public class BoletaPagoTrabajadorDTO {
     private String cargo;
     private String area;
 
-    private List<DetallePlanillaResponseDTO> ingresos;
-    private List<DetallePlanillaResponseDTO> descuentos;
+    private List<BoletaPagoDetalleDTO> ingresos;
+    private List<BoletaPagoDetalleDTO> descuentos;
 
     private BigDecimal totalIngresos;
     private BigDecimal totalDescuentos;

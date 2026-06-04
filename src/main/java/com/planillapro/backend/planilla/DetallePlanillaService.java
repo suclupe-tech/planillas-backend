@@ -9,6 +9,7 @@ import com.planillapro.backend.concepto.ConceptoPlanilla;
 import com.planillapro.backend.concepto.ConceptoPlanillaRepository;
 import com.planillapro.backend.periodo.PeriodoPlanilla;
 import com.planillapro.backend.periodo.PeriodoPlanillaRepository;
+import com.planillapro.backend.planilla.dto.BoletaPagoDetalleDTO;
 import com.planillapro.backend.planilla.dto.BoletaPagoTrabajadorDTO;
 import com.planillapro.backend.planilla.dto.DetallePlanillaRequestDTO;
 import com.planillapro.backend.planilla.dto.DetallePlanillaResponseDTO;
@@ -364,14 +365,14 @@ public class DetallePlanillaService {
         List<DetallePlanilla> detalles = detallePlanillaRepository
                 .findByPeriodoPlanillaIdAndTrabajadorId(periodoPlanillaId, trabajadorId);
 
-        List<DetallePlanillaResponseDTO> ingresos = detalles.stream()
+        List<BoletaPagoDetalleDTO> ingresos = detalles.stream()
                 .filter(detalle -> "INGRESO".equals(detalle.getTipo()))
-                .map(this::convertirAResponse)
+                .map(this::convertirABoletaDetalle)
                 .toList();
 
-        List<DetallePlanillaResponseDTO> descuentos = detalles.stream()
+        List<BoletaPagoDetalleDTO> descuentos = detalles.stream()
                 .filter(detalle -> "DESCUENTO".equals(detalle.getTipo()))
-                .map(this::convertirAResponse)
+                .map(this::convertirABoletaDetalle)
                 .toList();
 
         BigDecimal totalIngresos = BigDecimal.ZERO;
@@ -430,6 +431,23 @@ public class DetallePlanillaService {
         if (!empresaIdActual.equals(empresaId)) {
             throw new AccessDeniedAppException("No tienes acceso a la información de esta empresa");
         }
+    }
+
+    private BoletaPagoDetalleDTO convertirABoletaDetalle(DetallePlanilla detalle) {
+        BoletaPagoDetalleDTO response = new BoletaPagoDetalleDTO();
+
+        response.setDetalleId(detalle.getId());
+
+        response.setConceptoPlanillaId(detalle.getConceptoPlanilla().getId());
+        response.setConceptoCodigo(detalle.getConceptoPlanilla().getCodigo());
+        response.setConceptoNombre(detalle.getConceptoPlanilla().getNombre());
+
+        response.setTipo(detalle.getTipo());
+        response.setMonto(detalle.getMonto());
+
+        response.setObservacion(detalle.getObservacion());
+
+        return response;
     }
 
     private DetallePlanillaResponseDTO convertirAResponse(DetallePlanilla detalle) {
