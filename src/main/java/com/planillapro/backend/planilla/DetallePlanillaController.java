@@ -1,5 +1,6 @@
 package com.planillapro.backend.planilla;
 
+import com.planillapro.backend.planilla.dto.BoletaPagoTrabajadorDTO;
 import com.planillapro.backend.planilla.dto.DetallePlanillaRequestDTO;
 import com.planillapro.backend.planilla.dto.DetallePlanillaResponseDTO;
 import com.planillapro.backend.planilla.dto.ResumenPlanillaPeriodoDTO;
@@ -88,5 +89,16 @@ public class DetallePlanillaController {
             @PathVariable Long periodoPlanillaId
     ) {
         return detallePlanillaService.generarPlanillaPeriodo(periodoPlanillaId);
+    }
+
+    @GetMapping("/periodo/{periodoPlanillaId}/trabajador/{trabajadorId}/boleta")
+    public BoletaPagoTrabajadorDTO generarBoletaTrabajador(
+            @PathVariable Long periodoPlanillaId,
+            @PathVariable Long trabajadorId
+    ) {
+        return detallePlanillaService.generarBoletaTrabajador(
+                periodoPlanillaId,
+                trabajadorId
+        );
     }
 }

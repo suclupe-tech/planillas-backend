@@ -9,6 +9,7 @@ import com.planillapro.backend.concepto.ConceptoPlanilla;
 import com.planillapro.backend.concepto.ConceptoPlanillaRepository;
 import com.planillapro.backend.periodo.PeriodoPlanilla;
 import com.planillapro.backend.periodo.PeriodoPlanillaRepository;
+import com.planillapro.backend.planilla.dto.BoletaPagoTrabajadorDTO;
 import com.planillapro.backend.planilla.dto.DetallePlanillaRequestDTO;
 import com.planillapro.backend.planilla.dto.DetallePlanillaResponseDTO;
 import com.planillapro.backend.planilla.dto.ResumenPlanillaPeriodoDTO;
@@ -341,6 +342,80 @@ public class DetallePlanillaService {
         }
 
         return calcularResumenPeriodo(periodoPlanillaId);
+    }
+
+    public BoletaPagoTrabajadorDTO generarBoletaTrabajador(
+        Long periodoPlanillaId,
+        Long trabajadorId
+    ) {
+        PeriodoPlanilla periodo = periodoPlanillaRepository.findById(periodoPlanillaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
+
+        Trabajador trabajador = trabajadorRepository.findById(trabajadorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Trabajador no encontrado"));
+
+        validarAccesoEmpresa(periodo.getEmpresa().getId());
+        validarAccesoEmpresa(trabajador.getEmpresa().getId());
+
+        if (!periodo.getEmpresa().getId().equals(trabajador.getEmpresa().getId())) {
+            throw new RuntimeException("El trabajador no pertenece a la empresa del periodo");
+        }
+
+        List<DetallePlanilla> detalles = detallePlanillaRepository
+                .findByPeriodoPlanillaIdAndTrabajadorId(periodoPlanillaId, trabajadorId);
+
+        List<DetallePlanillaResponseDTO> ingresos = detalles.stream()
+                .filter(detalle -> "INGRESO".equals(detalle.getTipo()))
+                .map(this::convertirAResponse)
+                .toList();
+
+        List<DetallePlanillaResponseDTO> descuentos = detalles.stream()
+                .filter(detalle -> "DESCUENTO".equals(detalle.getTipo()))
+                .map(this::convertirAResponse)
+                .toList();
+
+        BigDecimal totalIngresos = BigDecimal.ZERO;
+        BigDecimal totalDescuentos = BigDecimal.ZERO;
+
+        for (DetallePlanilla detalle : detalles) {
+            if ("INGRESO".equals(detalle.getTipo())) {
+                totalIngresos = totalIngresos.add(detalle.getMonto());
+            }
+
+            if ("DESCUENTO".equals(detalle.getTipo())) {
+                totalDescuentos = totalDescuentos.add(detalle.getMonto());
+            }
+        }
+
+        BigDecimal netoPagar = totalIngresos.subtract(totalDescuentos);
+
+        BoletaPagoTrabajadorDTO response = new BoletaPagoTrabajadorDTO();
+
+        response.setEmpresaId(periodo.getEmpresa().getId());
+        response.setEmpresaRazonSocial(periodo.getEmpresa().getRazonSocial());
+        response.setEmpresaRuc(periodo.getEmpresa().getRuc());
+        response.setEmpresaDireccion(periodo.getEmpresa().getDireccion());
+
+        response.setPeriodoPlanillaId(periodo.getId());
+        response.setPeriodoNombre(periodo.getNombre());
+        response.setPeriodoTipo(periodo.getTipo());
+        response.setPeriodoEstado(periodo.getEstado());
+
+        response.setTrabajadorId(trabajador.getId());
+        response.setTrabajadorNombres(trabajador.getNombres());
+        response.setTrabajadorApellidos(trabajador.getApellidos());
+        response.setTrabajadorDocumento(trabajador.getNumeroDocumento());
+        response.setCargo(trabajador.getCargo());
+        response.setArea(trabajador.getArea());
+
+        response.setIngresos(ingresos);
+        response.setDescuentos(descuentos);
+
+        response.setTotalIngresos(totalIngresos);
+        response.setTotalDescuentos(totalDescuentos);
+        response.setNetoPagar(netoPagar);
+
+        return response;
     }
 
     private void validarAccesoEmpresa(Long empresaId) {
