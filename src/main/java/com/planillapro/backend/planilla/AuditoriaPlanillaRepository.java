@@ -13,4 +13,9 @@ public interface AuditoriaPlanillaRepository extends JpaRepository<AuditoriaPlan
     List<AuditoriaPlanilla> findByEmpresaIdOrderByFechaHoraDesc(Long empresaId);
 
     List<AuditoriaPlanilla> findByUsuarioIdOrderByFechaHoraDesc(Long usuarioId);
+
+    List<AuditoriaPlanilla> findByEmpresaIdAndAccionOrderByFechaHoraDesc(
+            Long empresaId,
+            String accion
+    );
 }

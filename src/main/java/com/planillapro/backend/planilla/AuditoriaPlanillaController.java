@@ -30,4 +30,11 @@ public class AuditoriaPlanillaController {
     public List<AuditoriaPlanillaResponseDTO> listarPorEmpresaActual() {
         return auditoriaPlanillaService.listarPorEmpresaActual();
     }
+
+    @GetMapping("/accion/{accion}")
+    public List<AuditoriaPlanillaResponseDTO> listarPorAccion(
+            @PathVariable String accion
+    ) {
+        return auditoriaPlanillaService.listarPorAccion(accion);
+    }
 }

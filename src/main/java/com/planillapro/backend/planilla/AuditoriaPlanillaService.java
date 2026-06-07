@@ -64,6 +64,16 @@ public class AuditoriaPlanillaService {
                 .toList();
     }
 
+    public List<AuditoriaPlanillaResponseDTO> listarPorAccion(String accion) {
+        Long empresaIdActual = authenticatedUserService.obtenerEmpresaIdActual();
+
+        return auditoriaPlanillaRepository
+                .findByEmpresaIdAndAccionOrderByFechaHoraDesc(empresaIdActual, accion)
+                .stream()
+                .map(this::convertirAResponse)
+                .toList();
+    }
+
     private AuditoriaPlanillaResponseDTO convertirAResponse(AuditoriaPlanilla auditoria) {
         AuditoriaPlanillaResponseDTO response = new AuditoriaPlanillaResponseDTO();
 
