@@ -55,4 +55,11 @@ public class AuditoriaPlanillaController {
     ) {
         return auditoriaPlanillaService.listarPorTrabajador(trabajadorId);
     }
+
+    @GetMapping("/usuario/{usuarioId}")
+    public List<AuditoriaPlanillaResponseDTO> listarPorUsuario(
+            @PathVariable Long usuarioId
+    ) {
+        return auditoriaPlanillaService.listarPorUsuario(usuarioId);
+    }
 }
