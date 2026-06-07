@@ -35,6 +35,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA")
                         .requestMatchers("/api/empresas/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA")
                         .requestMatchers("/api/trabajadores/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
+
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
                         .requestMatchers("/api/roles/**").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/conceptos-planilla/**")

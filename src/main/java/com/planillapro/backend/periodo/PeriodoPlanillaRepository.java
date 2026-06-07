@@ -17,4 +17,10 @@ public interface PeriodoPlanillaRepository extends JpaRepository<PeriodoPlanilla
             LocalDate fechaInicio,
             LocalDate fechaFin
     );
+
+    Integer countByEmpresaId(Long empresaId);
+
+    Integer countByEmpresaIdAndEstado(Long empresaId, String estado);
+
+    PeriodoPlanilla findFirstByEmpresaIdOrderByIdDesc(Long empresaId);
 }
