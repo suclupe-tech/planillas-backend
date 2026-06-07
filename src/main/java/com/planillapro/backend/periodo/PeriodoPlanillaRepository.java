@@ -1,6 +1,7 @@
 package com.planillapro.backend.periodo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,4 +24,6 @@ public interface PeriodoPlanillaRepository extends JpaRepository<PeriodoPlanilla
     Integer countByEmpresaIdAndEstado(Long empresaId, String estado);
 
     PeriodoPlanilla findFirstByEmpresaIdOrderByIdDesc(Long empresaId);
+
+    List<PeriodoPlanilla> findByEmpresaIdOrderByIdDesc(Long empresaId, Pageable pageable);
 }

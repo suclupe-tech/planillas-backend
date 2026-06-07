@@ -7,6 +7,10 @@ import com.planillapro.backend.planilla.DetallePlanillaService;
 import com.planillapro.backend.planilla.dto.ResumenPlanillaPeriodoDTO;
 import com.planillapro.backend.security.AuthenticatedUserService;
 import org.springframework.stereotype.Service;
+import com.planillapro.backend.dashboard.dto.DashboardUltimaPlanillaDTO;
+import org.springframework.data.domain.PageRequest;
+
+import java.util.List;
 
 import java.math.BigDecimal;
 
@@ -74,6 +78,29 @@ public class DashboardPlanillaService {
         dto.setUltimaPlanillaNombre(ultimaPlanilla.getNombre());
         dto.setUltimaPlanillaTipo(ultimaPlanilla.getTipo());
         dto.setUltimaPlanillaEstado(ultimaPlanilla.getEstado());
+
+        return dto;
+    }
+
+    public List<DashboardUltimaPlanillaDTO> obtenerUltimasPlanillas() {
+        Long empresaId = authenticatedUserService.obtenerEmpresaIdActual();
+
+        return periodoPlanillaRepository
+                .findByEmpresaIdOrderByIdDesc(empresaId, PageRequest.of(0, 5))
+                .stream()
+                .map(this::convertirAUltimaPlanillaDTO)
+                .toList();
+    }
+
+    private DashboardUltimaPlanillaDTO convertirAUltimaPlanillaDTO(PeriodoPlanilla periodo) {
+        DashboardUltimaPlanillaDTO dto = new DashboardUltimaPlanillaDTO();
+
+        dto.setId(periodo.getId());
+        dto.setNombre(periodo.getNombre());
+        dto.setTipo(periodo.getTipo());
+        dto.setEstado(periodo.getEstado());
+        dto.setFechaInicio(periodo.getFechaInicio());
+        dto.setFechaFin(periodo.getFechaFin());
 
         return dto;
     }
