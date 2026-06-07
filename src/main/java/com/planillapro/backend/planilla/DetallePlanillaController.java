@@ -20,13 +20,17 @@ public class DetallePlanillaController {
 
     private final DetallePlanillaService detallePlanillaService;
     private final BoletaPagoPdfService boletaPagoPdfService;
+    private final ReportePlanillaPdfService reportePlanillaPdfService;
+    
 
     public DetallePlanillaController(
             DetallePlanillaService detallePlanillaService,
-            BoletaPagoPdfService boletaPagoPdfService
+            BoletaPagoPdfService boletaPagoPdfService,
+            ReportePlanillaPdfService reportePlanillaPdfService
     ) {
         this.detallePlanillaService = detallePlanillaService;
         this.boletaPagoPdfService = boletaPagoPdfService;
+        this.reportePlanillaPdfService = reportePlanillaPdfService;
     }
 
     @PostMapping
@@ -127,4 +131,21 @@ public class DetallePlanillaController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }
+
+    @GetMapping("/periodo/{periodoPlanillaId}/reporte/pdf")
+        public ResponseEntity<byte[]> descargarReportePlanillaPdf(
+                @PathVariable Long periodoPlanillaId
+        ) {
+        byte[] pdf = reportePlanillaPdfService.generarReportePlanillaPdf(periodoPlanillaId);
+
+        String filename = "reporte-planilla-periodo-" + periodoPlanillaId + ".pdf";
+
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=" + filename
+                )
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+        }
 }
