@@ -74,6 +74,17 @@ public class AuditoriaPlanillaService {
                 .toList();
     }
 
+    public List<AuditoriaPlanillaResponseDTO> listarPorPeriodoYAccion(
+            Long periodoPlanillaId,
+            String accion
+    ) {
+        return auditoriaPlanillaRepository
+                .findByPeriodoPlanillaIdAndAccionOrderByFechaHoraDesc(periodoPlanillaId, accion)
+                .stream()
+                .map(this::convertirAResponse)
+                .toList();
+    }
+
     private AuditoriaPlanillaResponseDTO convertirAResponse(AuditoriaPlanilla auditoria) {
         AuditoriaPlanillaResponseDTO response = new AuditoriaPlanillaResponseDTO();
 

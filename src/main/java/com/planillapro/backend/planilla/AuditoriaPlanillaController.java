@@ -37,4 +37,15 @@ public class AuditoriaPlanillaController {
     ) {
         return auditoriaPlanillaService.listarPorAccion(accion);
     }
+
+    @GetMapping("/periodo/{periodoPlanillaId}/accion/{accion}")
+    public List<AuditoriaPlanillaResponseDTO> listarPorPeriodoYAccion(
+            @PathVariable Long periodoPlanillaId,
+            @PathVariable String accion
+    ) {
+        return auditoriaPlanillaService.listarPorPeriodoYAccion(
+                periodoPlanillaId,
+                accion
+        );
+    }
 }
