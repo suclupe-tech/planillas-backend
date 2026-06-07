@@ -85,6 +85,14 @@ public class AuditoriaPlanillaService {
                 .toList();
     }
 
+    public List<AuditoriaPlanillaResponseDTO> listarPorTrabajador(Long trabajadorId) {
+        return auditoriaPlanillaRepository
+                .findByTrabajadorIdOrderByFechaHoraDesc(trabajadorId)
+                .stream()
+                .map(this::convertirAResponse)
+                .toList();
+    }
+
     private AuditoriaPlanillaResponseDTO convertirAResponse(AuditoriaPlanilla auditoria) {
         AuditoriaPlanillaResponseDTO response = new AuditoriaPlanillaResponseDTO();
 

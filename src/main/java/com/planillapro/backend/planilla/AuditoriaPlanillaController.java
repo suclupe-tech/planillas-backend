@@ -48,4 +48,11 @@ public class AuditoriaPlanillaController {
                 accion
         );
     }
+
+    @GetMapping("/trabajador/{trabajadorId}")
+    public List<AuditoriaPlanillaResponseDTO> listarPorTrabajador(
+            @PathVariable Long trabajadorId
+    ) {
+        return auditoriaPlanillaService.listarPorTrabajador(trabajadorId);
+    }
 }
