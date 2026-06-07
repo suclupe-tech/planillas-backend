@@ -1,10 +1,13 @@
 package com.planillapro.backend.dashboard;
 
 import com.planillapro.backend.dashboard.dto.DashboardPlanillaDTO;
+import com.planillapro.backend.dashboard.dto.DashboardPlanillaMensualDTO;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.planillapro.backend.dashboard.dto.DashboardUltimaPlanillaDTO;
+import com.planillapro.backend.dashboard.dto.DashboardPlanillaMensualDTO;
 
 import java.util.List;
 
@@ -26,5 +29,10 @@ public class DashboardPlanillaController {
     @GetMapping("/planillas/ultimas")
     public List<DashboardUltimaPlanillaDTO> obtenerUltimasPlanillas() {
         return dashboardPlanillaService.obtenerUltimasPlanillas();
+    }
+
+    @GetMapping("/planillas/totales-mensuales")
+    public List<DashboardPlanillaMensualDTO> obtenerTotalesMensuales() {
+        return dashboardPlanillaService.obtenerTotalesMensuales();
     }
 }

@@ -9,6 +9,12 @@ import com.planillapro.backend.security.AuthenticatedUserService;
 import org.springframework.stereotype.Service;
 import com.planillapro.backend.dashboard.dto.DashboardUltimaPlanillaDTO;
 import org.springframework.data.domain.PageRequest;
+import com.planillapro.backend.dashboard.dto.DashboardPlanillaMensualDTO;
+
+import java.time.Month;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 
 import java.util.List;
 
@@ -103,5 +109,64 @@ public class DashboardPlanillaService {
         dto.setFechaFin(periodo.getFechaFin());
 
         return dto;
+    }
+
+    public List<DashboardPlanillaMensualDTO> obtenerTotalesMensuales() {
+        Long empresaId = authenticatedUserService.obtenerEmpresaIdActual();
+
+        Map<String, DashboardPlanillaMensualDTO> mapa = new TreeMap<>();
+
+        for (PeriodoPlanilla periodo : periodoPlanillaRepository.findByEmpresaId(empresaId)) {
+            Integer anio = periodo.getFechaInicio().getYear();
+            Integer mes = periodo.getFechaInicio().getMonthValue();
+
+            String clave = anio + "-" + String.format("%02d", mes);
+
+            DashboardPlanillaMensualDTO dto = mapa.getOrDefault(
+                    clave,
+                    crearDashboardMensualDTO(anio, mes)
+            );
+
+            ResumenPlanillaPeriodoDTO resumen =
+                    detallePlanillaService.calcularResumenPeriodo(periodo.getId());
+
+            dto.setTotalIngresos(dto.getTotalIngresos().add(resumen.getTotalIngresos()));
+            dto.setTotalDescuentos(dto.getTotalDescuentos().add(resumen.getTotalDescuentos()));
+            dto.setTotalNetoPagar(dto.getTotalNetoPagar().add(resumen.getTotalNetoPagar()));
+
+            mapa.put(clave, dto);
+        }
+
+        return new ArrayList<>(mapa.values());
+    }
+
+    private DashboardPlanillaMensualDTO crearDashboardMensualDTO(Integer anio, Integer mes) {
+        DashboardPlanillaMensualDTO dto = new DashboardPlanillaMensualDTO();
+
+        dto.setAnio(anio);
+        dto.setMes(mes);
+        dto.setNombreMes(obtenerNombreMes(mes));
+        dto.setTotalIngresos(BigDecimal.ZERO);
+        dto.setTotalDescuentos(BigDecimal.ZERO);
+        dto.setTotalNetoPagar(BigDecimal.ZERO);
+
+        return dto;
+    }
+
+    private String obtenerNombreMes(Integer mes) {
+        return switch (Month.of(mes)) {
+            case JANUARY -> "Enero";
+            case FEBRUARY -> "Febrero";
+            case MARCH -> "Marzo";
+            case APRIL -> "Abril";
+            case MAY -> "Mayo";
+            case JUNE -> "Junio";
+            case JULY -> "Julio";
+            case AUGUST -> "Agosto";
+            case SEPTEMBER -> "Septiembre";
+            case OCTOBER -> "Octubre";
+            case NOVEMBER -> "Noviembre";
+            case DECEMBER -> "Diciembre";
+        };
     }
 }
