@@ -12,6 +12,11 @@ import com.lowagie.text.pdf.PdfWriter;
 import com.planillapro.backend.planilla.dto.BoletaPagoDetalleDTO;
 import com.planillapro.backend.planilla.dto.BoletaPagoTrabajadorDTO;
 import org.springframework.stereotype.Service;
+import com.planillapro.backend.periodo.PeriodoPlanilla;
+import com.planillapro.backend.periodo.PeriodoPlanillaRepository;
+import com.planillapro.backend.shared.exception.ResourceNotFoundException;
+import com.planillapro.backend.trabajador.Trabajador;
+import com.planillapro.backend.trabajador.TrabajadorRepository;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
@@ -23,9 +28,20 @@ import java.time.format.DateTimeFormatter;
 public class BoletaPagoPdfService {
 
     private final DetallePlanillaService detallePlanillaService;
+    private final AuditoriaPlanillaService auditoriaPlanillaService;
+    private final PeriodoPlanillaRepository periodoPlanillaRepository;
+    private final TrabajadorRepository trabajadorRepository;
 
-    public BoletaPagoPdfService(DetallePlanillaService detallePlanillaService) {
+    public BoletaPagoPdfService(
+            DetallePlanillaService detallePlanillaService,
+            AuditoriaPlanillaService auditoriaPlanillaService,
+            PeriodoPlanillaRepository periodoPlanillaRepository,
+            TrabajadorRepository trabajadorRepository
+    ) {
         this.detallePlanillaService = detallePlanillaService;
+        this.auditoriaPlanillaService = auditoriaPlanillaService;
+        this.periodoPlanillaRepository = periodoPlanillaRepository;
+        this.trabajadorRepository = trabajadorRepository;
     }
 
     public byte[] generarPdfBoleta(Long periodoPlanillaId, Long trabajadorId) {
@@ -51,6 +67,23 @@ public class BoletaPagoPdfService {
             agregarFirma(document);
 
             document.close();
+
+            PeriodoPlanilla periodo = periodoPlanillaRepository.findById(periodoPlanillaId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
+
+            Trabajador trabajador = trabajadorRepository.findById(trabajadorId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trabajador no encontrado"));
+
+            auditoriaPlanillaService.registrar(
+                    periodo.getEmpresa(),
+                    periodo,
+                    trabajador,
+                    null,
+                    "DESCARGAR_BOLETA_PDF",
+                    "Se descargó la boleta PDF del trabajador "
+                            + trabajador.getNombres() + " " + trabajador.getApellidos()
+                            + " del periodo " + periodo.getNombre()
+            );
 
             return outputStream.toByteArray();
         } catch (Exception e) {

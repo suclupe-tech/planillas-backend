@@ -2,13 +2,13 @@ package com.planillapro.backend.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.http.HttpMethod;
 
 import com.planillapro.backend.security.jwt.JwtAuthenticationFilter;
 
@@ -50,6 +50,9 @@ public class SecurityConfig {
                         .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
 
                         .requestMatchers(HttpMethod.GET, "/api/detalles-planilla/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
+
+                        .requestMatchers(HttpMethod.GET, "/api/auditoria-planilla/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
 
                         .requestMatchers(HttpMethod.POST, "/api/detalles-planilla/**")

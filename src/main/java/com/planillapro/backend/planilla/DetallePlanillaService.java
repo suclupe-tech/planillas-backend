@@ -1,8 +1,8 @@
 package com.planillapro.backend.planilla;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -21,6 +21,7 @@ import com.planillapro.backend.shared.exception.AccessDeniedAppException;
 import com.planillapro.backend.shared.exception.ResourceNotFoundException;
 import com.planillapro.backend.trabajador.Trabajador;
 import com.planillapro.backend.trabajador.TrabajadorRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DetallePlanillaService {
@@ -48,6 +49,7 @@ public class DetallePlanillaService {
         this.auditoriaPlanillaService = auditoriaPlanillaService;
     }
 
+    @Transactional
     public DetallePlanillaResponseDTO crear(DetallePlanillaRequestDTO request) {
         PeriodoPlanilla periodo = periodoPlanillaRepository.findById(request.       getPeriodoPlanillaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
@@ -88,9 +90,20 @@ public class DetallePlanillaService {
 
         DetallePlanilla detalleGuardado = detallePlanillaRepository.save(detalle);
 
+        auditoriaPlanillaService.registrar(
+                periodo.getEmpresa(),
+                periodo,
+                trabajador,
+                detalleGuardado,
+                "CREAR_DETALLE",
+                "Se registró el concepto " + concepto.getCodigo()
+                        + " por el monto " + detalleGuardado.getMonto()
+        );
+
         return convertirAResponse(detalleGuardado);
     }
 
+    @Transactional
     public DetallePlanillaResponseDTO actualizar(Long id, DetallePlanillaRequestDTO request) {
         DetallePlanilla detalle = detallePlanillaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Detalle de planilla no encontrado"));
@@ -144,9 +157,20 @@ public class DetallePlanillaService {
 
         DetallePlanilla detalleActualizado = detallePlanillaRepository.save(detalle);
 
+        auditoriaPlanillaService.registrar(
+                nuevoPeriodo.getEmpresa(),
+                nuevoPeriodo,
+                trabajador,
+                detalleActualizado,
+                "ACTUALIZAR_DETALLE",
+                "Se actualizó el concepto " + concepto.getCodigo()
+                        + " al monto " + detalleActualizado.getMonto()
+        );
+
         return convertirAResponse(detalleActualizado);
     }
 
+    @Transactional
     public void eliminar(Long id) {
         DetallePlanilla detalle = detallePlanillaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Detalle de planilla no encontrado"));
@@ -158,6 +182,17 @@ public class DetallePlanillaService {
         if ("CERRADO".equals(periodo.getEstado())) {
             throw new RuntimeException("No se puede eliminar detalles de un periodo cerrado");
         }
+
+        auditoriaPlanillaService.registrar(
+                periodo.getEmpresa(),
+                periodo,
+                detalle.getTrabajador(),
+                null,
+                "ELIMINAR_DETALLE",
+                "Se eliminó el detalle ID " + detalle.getId()
+                        + " del concepto " + detalle.getConceptoPlanilla().getCodigo()
+                        + " por el monto " + detalle.getMonto()
+        );
 
         detallePlanillaRepository.delete(detalle);
     }
@@ -309,6 +344,7 @@ public class DetallePlanillaService {
         return response;
     }
 
+    @Transactional
     public ResumenPlanillaPeriodoDTO generarPlanillaPeriodo(Long periodoPlanillaId) {
         PeriodoPlanilla periodo = periodoPlanillaRepository.findById(periodoPlanillaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
@@ -324,6 +360,8 @@ public class DetallePlanillaService {
 
         List<Trabajador> trabajadoresActivos = trabajadorRepository
                 .findByEmpresaIdAndEstado(periodo.getEmpresa().getId(), "ACTIVO");
+
+        int detallesCreados = 0;
 
         for (Trabajador trabajador : trabajadoresActivos) {
             boolean yaExiste = detallePlanillaRepository
@@ -343,8 +381,22 @@ public class DetallePlanillaService {
                 detalle.setObservacion("Generado automáticamente desde sueldo base del trabajador");
 
                 detallePlanillaRepository.save(detalle);
+
+                detallesCreados++;
             }
         }
+
+        auditoriaPlanillaService.registrar(
+                periodo.getEmpresa(),
+                periodo,
+                null,
+                null,
+                "GENERAR_PLANILLA",
+                "Se generó la planilla automática. Trabajadores activos procesados: "
+                        + trabajadoresActivos.size()
+                        + ". Detalles creados: "
+                        + detallesCreados
+        );
 
         return calcularResumenPeriodo(periodoPlanillaId);
     }

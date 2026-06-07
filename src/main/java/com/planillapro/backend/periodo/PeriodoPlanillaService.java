@@ -8,6 +8,8 @@ import com.planillapro.backend.shared.exception.ResourceNotFoundException;
 import com.planillapro.backend.periodo.dto.PeriodoPlanillaRequestDTO;
 import com.planillapro.backend.periodo.dto.PeriodoPlanillaResponseDTO;
 import org.springframework.stereotype.Service;
+import com.planillapro.backend.planilla.AuditoriaPlanillaService;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,15 +19,18 @@ public class PeriodoPlanillaService {
     private final PeriodoPlanillaRepository periodoPlanillaRepository;
     private final EmpresaRepository empresaRepository;
     private final AuthenticatedUserService authenticatedUserService;
+    private final AuditoriaPlanillaService auditoriaPlanillaService;
 
     public PeriodoPlanillaService(
             PeriodoPlanillaRepository periodoPlanillaRepository,
             EmpresaRepository empresaRepository,
-            AuthenticatedUserService authenticatedUserService
+            AuthenticatedUserService authenticatedUserService,
+            AuditoriaPlanillaService auditoriaPlanillaService
     ) {
         this.periodoPlanillaRepository = periodoPlanillaRepository;
         this.empresaRepository = empresaRepository;
         this.authenticatedUserService = authenticatedUserService;
+        this.auditoriaPlanillaService = auditoriaPlanillaService;
     }
 
     public PeriodoPlanillaResponseDTO crear(PeriodoPlanillaRequestDTO request) {
@@ -105,6 +110,7 @@ public class PeriodoPlanillaService {
         return convertirAResponse(periodo);
     }
 
+    @Transactional
     public PeriodoPlanillaResponseDTO cerrar(Long id) {
         PeriodoPlanilla periodo = periodoPlanillaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
@@ -119,7 +125,17 @@ public class PeriodoPlanillaService {
 
         PeriodoPlanilla periodoActualizado = periodoPlanillaRepository.save(periodo);
 
+        auditoriaPlanillaService.registrar(
+                periodoActualizado.getEmpresa(),
+                periodoActualizado,
+                null,
+                null,
+                "CERRAR_PLANILLA",
+                "Se cerró la planilla " + periodoActualizado.getNombre()
+        );
+
         return convertirAResponse(periodoActualizado);
+
     }
 
     private void validarAccesoEmpresa(Long empresaId) {
