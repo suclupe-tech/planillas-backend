@@ -6,12 +6,14 @@ import org.springframework.stereotype.Service;
 import com.planillapro.backend.auth.dto.LoginRequestDTO;
 import com.planillapro.backend.auth.dto.LoginResponseDTO;
 import com.planillapro.backend.security.jwt.JwtService;
-import com.planillapro.backend.shared.exception.ResourceNotFoundException;
+import com.planillapro.backend.shared.exception.UnauthorizedException;
 import com.planillapro.backend.usuario.Usuario;
 import com.planillapro.backend.usuario.UsuarioRepository;
 
 @Service
 public class AuthService {
+
+    private static final String CREDENCIALES_INVALIDAS = "Credenciales incorrectas";
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -29,19 +31,16 @@ public class AuthService {
 
     public LoginResponseDTO login(LoginRequestDTO request) {
         Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new UnauthorizedException(CREDENCIALES_INVALIDAS));
 
         boolean passwordValido = passwordEncoder.matches(
                 request.getPassword(),
                 usuario.getPassword()
         );
 
-        if (!passwordValido) {
-            throw new RuntimeException("Credenciales incorrectas");
-        }
-
-        if (!"ACTIVO".equals(usuario.getEstado())) {
-            throw new RuntimeException("El usuario no está activo");
+        // Mismo mensaje para cualquier fallo: no revelar qué emails existen ni su estado.
+        if (!passwordValido || !"ACTIVO".equals(usuario.getEstado())) {
+            throw new UnauthorizedException(CREDENCIALES_INVALIDAS);
         }
 
         String token = jwtService.generarToken(usuario);

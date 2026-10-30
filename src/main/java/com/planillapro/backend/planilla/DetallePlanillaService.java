@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.planillapro.backend.shared.exception.BusinessException;
 import com.planillapro.backend.concepto.ConceptoPlanilla;
 import com.planillapro.backend.concepto.ConceptoPlanillaRepository;
 import com.planillapro.backend.periodo.PeriodoPlanilla;
@@ -57,7 +58,7 @@ public class DetallePlanillaService {
         validarAccesoEmpresa(periodo.getEmpresa().getId());
 
         if ("CERRADO".equals(periodo.getEstado())) {
-            throw new RuntimeException("No se puede registrar detalles en un periodo cerrado");
+            throw new BusinessException("No se puede registrar detalles en un periodo cerrado");
         }
 
         Trabajador trabajador = trabajadorRepository.findById(request.getTrabajadorId())
@@ -66,7 +67,7 @@ public class DetallePlanillaService {
         validarAccesoEmpresa(trabajador.getEmpresa().getId());
 
         if (!periodo.getEmpresa().getId().equals(trabajador.getEmpresa().getId())) {
-            throw new RuntimeException("El trabajador no pertenece a la empresa del periodo");
+            throw new BusinessException("El trabajador no pertenece a la empresa del periodo");
         }
 
         ConceptoPlanilla concepto = conceptoPlanillaRepository.findById(request.getConceptoPlanillaId())
@@ -77,7 +78,7 @@ public class DetallePlanillaService {
                 request.getTrabajadorId(),
                 request.getConceptoPlanillaId()
         )) {
-            throw new RuntimeException("Ya existe este concepto registrado para el trabajador en este periodo");
+            throw new BusinessException("Ya existe este concepto registrado para el trabajador en este periodo");
         }
 
         DetallePlanilla detalle = new DetallePlanilla();
@@ -113,7 +114,7 @@ public class DetallePlanillaService {
         validarAccesoEmpresa(periodoActual.getEmpresa().getId());
 
         if ("CERRADO".equals(periodoActual.getEstado())) {
-            throw new RuntimeException("No se puede modificar detalles de un periodo cerrado");
+            throw new BusinessException("No se puede modificar detalles de un periodo cerrado");
         }
 
         PeriodoPlanilla nuevoPeriodo = periodoPlanillaRepository.findById(request.getPeriodoPlanillaId())
@@ -129,11 +130,11 @@ public class DetallePlanillaService {
         validarAccesoEmpresa(trabajador.getEmpresa().getId());
 
         if ("CERRADO".equals(nuevoPeriodo.getEstado())) {
-            throw new RuntimeException("No se puede modificar detalles de un periodo cerrado");
+            throw new BusinessException("No se puede modificar detalles de un periodo cerrado");
         }
 
         if (!nuevoPeriodo.getEmpresa().getId().equals(trabajador.getEmpresa().getId())) {
-            throw new RuntimeException("El trabajador no pertenece a la empresa del periodo");
+            throw new BusinessException("El trabajador no pertenece a la empresa del periodo");
         }
 
         detallePlanillaRepository
@@ -144,7 +145,7 @@ public class DetallePlanillaService {
                 )
                 .ifPresent(detalleExistente -> {
                     if (!detalleExistente.getId().equals(id)) {
-                        throw new RuntimeException("Ya existe este concepto registrado para el trabajador en este periodo");
+                        throw new BusinessException("Ya existe este concepto registrado para el trabajador en este periodo");
                     }
                 });
 
@@ -180,7 +181,7 @@ public class DetallePlanillaService {
         validarAccesoEmpresa(periodo.getEmpresa().getId());
 
         if ("CERRADO".equals(periodo.getEstado())) {
-            throw new RuntimeException("No se puede eliminar detalles de un periodo cerrado");
+            throw new BusinessException("No se puede eliminar detalles de un periodo cerrado");
         }
 
         auditoriaPlanillaService.registrar(
@@ -235,7 +236,7 @@ public class DetallePlanillaService {
         validarAccesoEmpresa(trabajador.getEmpresa().getId());
 
         if (!periodo.getEmpresa().getId().equals(trabajador.getEmpresa().getId())) {
-            throw new RuntimeException("El trabajador no pertenece a la empresa del periodo");
+            throw new BusinessException("El trabajador no pertenece a la empresa del periodo");
         }
 
         return detallePlanillaRepository.findByPeriodoPlanillaIdAndTrabajadorId(
@@ -261,7 +262,7 @@ public class DetallePlanillaService {
         validarAccesoEmpresa(trabajador.getEmpresa().getId());
 
         if (!periodo.getEmpresa().getId().equals(trabajador.getEmpresa().getId())) {
-            throw new RuntimeException("El trabajador no pertenece a la empresa del periodo");
+            throw new BusinessException("El trabajador no pertenece a la empresa del periodo");
         }
 
         List<DetallePlanilla> detalles = detallePlanillaRepository
@@ -352,7 +353,7 @@ public class DetallePlanillaService {
         validarAccesoEmpresa(periodo.getEmpresa().getId());
 
         if ("CERRADO".equals(periodo.getEstado())) {
-            throw new RuntimeException("No se puede generar una planilla en un periodo cerrado");
+            throw new BusinessException("No se puede generar una planilla en un periodo cerrado");
         }
 
         ConceptoPlanilla sueldoBasico = conceptoPlanillaRepository.findByCodigo("SUELDO_BASICO")
@@ -415,7 +416,7 @@ public class DetallePlanillaService {
         validarAccesoEmpresa(trabajador.getEmpresa().getId());
 
         if (!periodo.getEmpresa().getId().equals(trabajador.getEmpresa().getId())) {
-            throw new RuntimeException("El trabajador no pertenece a la empresa del periodo");
+            throw new BusinessException("El trabajador no pertenece a la empresa del periodo");
         }
 
         List<DetallePlanilla> detalles = detallePlanillaRepository

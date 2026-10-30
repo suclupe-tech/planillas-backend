@@ -2,6 +2,7 @@ package com.planillapro.backend.planilla;
 
 import com.planillapro.backend.periodo.PeriodoPlanilla;
 import com.planillapro.backend.periodo.PeriodoPlanillaRepository;
+import com.planillapro.backend.shared.exception.ResourceNotFoundException;
 import com.planillapro.backend.planilla.dto.ResumenPlanillaPeriodoDTO;
 import com.planillapro.backend.planilla.dto.ResumenPlanillaTrabajadorDTO;
 import org.apache.poi.ss.usermodel.*;
@@ -129,7 +130,7 @@ public class ReportePlanillaExcelService {
 
     private void registrarAuditoria(Long periodoPlanillaId) {
         PeriodoPlanilla periodoPlanilla = periodoPlanillaRepository.findById(periodoPlanillaId)
-                .orElseThrow(() -> new RuntimeException("Periodo de planilla no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
 
         auditoriaPlanillaService.registrar(
                 periodoPlanilla.getEmpresa(),

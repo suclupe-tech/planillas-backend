@@ -15,6 +15,28 @@ Backend del sistema PlanillaPro desarrollado con Spring Boot y PostgreSQL.
 - OpenPDF
 - Apache POI
 
+## Configuración (variables de entorno)
+
+Las credenciales no se guardan en el repositorio. La aplicación no arranca sin `DB_PASSWORD` y `JWT_SECRET`.
+
+| Variable | Obligatoria | Default |
+|---|---|---|
+| `DB_PASSWORD` | Sí | — |
+| `JWT_SECRET` | Sí (mín. 32 bytes) | — |
+| `DB_URL` | No | `jdbc:postgresql://localhost:5432/db_planillapro` |
+| `DB_USERNAME` | No | `postgres` |
+| `CORS_ALLOWED_ORIGINS` | No | `http://localhost:4200` (separar con comas) |
+| `JWT_EXPIRATION_MS` | No | `28800000` (8 h) |
+| `SHOW_SQL` | No | `false` |
+
+```bash
+export DB_PASSWORD=tu_password
+export JWT_SECRET=$(openssl rand -base64 48)
+./mvnw spring-boot:run
+```
+
+---
+
 ## Módulos implementados
 
 - Autenticación con JWT

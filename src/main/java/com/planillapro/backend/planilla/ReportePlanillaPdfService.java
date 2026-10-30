@@ -15,6 +15,7 @@ import com.planillapro.backend.planilla.dto.ResumenPlanillaTrabajadorDTO;
 import org.springframework.stereotype.Service;
 import com.planillapro.backend.periodo.PeriodoPlanilla;
 import com.planillapro.backend.periodo.PeriodoPlanillaRepository;
+import com.planillapro.backend.shared.exception.ResourceNotFoundException;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
@@ -58,7 +59,7 @@ public class ReportePlanillaPdfService {
         document.close();
 
         PeriodoPlanilla periodoPlanilla = periodoPlanillaRepository.findById(periodoPlanillaId)
-                .orElseThrow(() -> new RuntimeException("Periodo de planilla no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Periodo de planilla no encontrado"));
 
         auditoriaPlanillaService.registrar(
                 periodoPlanilla.getEmpresa(),

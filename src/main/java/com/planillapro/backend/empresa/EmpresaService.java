@@ -1,5 +1,7 @@
 package com.planillapro.backend.empresa;
 
+import com.planillapro.backend.security.AuthenticatedUserService;
+import com.planillapro.backend.shared.exception.BusinessException;
 import com.planillapro.backend.empresa.dto.EmpresaRequestDTO;
 import com.planillapro.backend.empresa.dto.EmpresaResponseDTO;
 import org.springframework.stereotype.Service;
@@ -11,14 +13,19 @@ import java.util.List;
 public class EmpresaService {
 
     private final EmpresaRepository empresaRepository;
+    private final AuthenticatedUserService authenticatedUserService;
 
-    public EmpresaService(EmpresaRepository empresaRepository) {
+    public EmpresaService(
+            EmpresaRepository empresaRepository,
+            AuthenticatedUserService authenticatedUserService
+    ) {
         this.empresaRepository = empresaRepository;
+        this.authenticatedUserService = authenticatedUserService;
     }
 
     public EmpresaResponseDTO crear(EmpresaRequestDTO request) {
         if (empresaRepository.existsByRuc(request.getRuc())) {
-            throw new RuntimeException("Ya existe una empresa registrada con ese RUC");
+            throw new BusinessException("Ya existe una empresa registrada con ese RUC");
         }
 
         Empresa empresa = new Empresa();
@@ -36,15 +43,23 @@ public class EmpresaService {
     }
 
     public List<EmpresaResponseDTO> listar() {
-        return empresaRepository.findAll()
+        List<Empresa> empresas = authenticatedUserService.esSuperAdmin()
+                ? empresaRepository.findAll()
+                : empresaRepository.findById(authenticatedUserService.obtenerEmpresaIdActual())
+                        .map(List::of)
+                        .orElse(List.of());
+
+        return empresas
                 .stream()
                 .map(this::convertirAResponse)
                 .toList();
     }
 
     public EmpresaResponseDTO buscarPorId(Long id) {
-    Empresa empresa = empresaRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada"));
+        authenticatedUserService.validarAccesoEmpresa(id);
+
+        Empresa empresa = empresaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no encontrada"));
 
         return convertirAResponse(empresa);
     }

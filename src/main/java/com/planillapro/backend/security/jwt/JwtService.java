@@ -5,6 +5,7 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.planillapro.backend.usuario.Usuario;
@@ -16,13 +17,27 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "PLANILLAPRO_SECRET_KEY_SUPER_SEGURA_2026_CAMBIAR_EN_PRODUCCION";
+    private final SecretKey signingKey;
 
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 8;
+    private final long expirationTime;
+
+    public JwtService(
+            @Value("${app.jwt.secret}") String secret,
+            @Value("${app.jwt.expiration-ms:28800000}") long expirationTime
+    ) {
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException("app.jwt.secret debe tener al menos 32 bytes (256 bits)");
+        }
+
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+        this.expirationTime = expirationTime;
+    }
 
     public String generarToken(Usuario usuario) {
         Date ahora = new Date();
-        Date expiracion = new Date(ahora.getTime() + EXPIRATION_TIME);
+        Date expiracion = new Date(ahora.getTime() + expirationTime);
 
         return Jwts.builder()
                 .subject(usuario.getEmail())
@@ -31,7 +46,7 @@ public class JwtService {
                 .claim("rol", usuario.getRol().getNombre())
                 .issuedAt(ahora)
                 .expiration(expiracion)
-                .signWith(getSigningKey())
+                .signWith(signingKey)
                 .compact();
     }
 
@@ -56,14 +71,9 @@ public class JwtService {
 
     private Claims obtenerClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .verifyWith(signingKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-    }
-
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

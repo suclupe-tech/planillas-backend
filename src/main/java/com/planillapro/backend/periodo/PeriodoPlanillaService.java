@@ -1,5 +1,6 @@
 package com.planillapro.backend.periodo;
 
+import com.planillapro.backend.shared.exception.BusinessException;
 import com.planillapro.backend.empresa.Empresa;
 import com.planillapro.backend.empresa.EmpresaRepository;
 import com.planillapro.backend.security.AuthenticatedUserService;
@@ -37,7 +38,7 @@ public class PeriodoPlanillaService {
         validarAccesoEmpresa(request.getEmpresaId());
 
         if (request.getFechaFin().isBefore(request.getFechaInicio())) {
-            throw new RuntimeException("La fecha fin no puede ser menor que la fecha de inicio");
+            throw new BusinessException("La fecha fin no puede ser menor que la fecha de inicio");
         }
 
         if (periodoPlanillaRepository.existsByEmpresaIdAndTipoAndFechaInicioAndFechaFin(
@@ -46,7 +47,7 @@ public class PeriodoPlanillaService {
                 request.getFechaInicio(),
                 request.getFechaFin()
         )) {
-            throw new RuntimeException("Ya existe un periodo de planilla con esas fechas para esta empresa");
+            throw new BusinessException("Ya existe un periodo de planilla con esas fechas para esta empresa");
         }
 
         Empresa empresa = empresaRepository.findById(request.getEmpresaId())
@@ -118,7 +119,7 @@ public class PeriodoPlanillaService {
         validarAccesoEmpresa(periodo.getEmpresa().getId());
 
         if ("CERRADO".equals(periodo.getEstado())) {
-            throw new RuntimeException("El periodo de planilla ya se encuentra cerrado");
+            throw new BusinessException("El periodo de planilla ya se encuentra cerrado");
         }
 
         periodo.setEstado("CERRADO");

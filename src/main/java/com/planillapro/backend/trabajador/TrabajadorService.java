@@ -1,5 +1,6 @@
 package com.planillapro.backend.trabajador;
 
+import com.planillapro.backend.shared.exception.BusinessException;
 import com.planillapro.backend.empresa.Empresa;
 import com.planillapro.backend.empresa.EmpresaRepository;
 import com.planillapro.backend.security.AuthenticatedUserService;
@@ -38,7 +39,7 @@ public class TrabajadorService {
                 request.getTipoDocumento(),
                 request.getNumeroDocumento()
         )) {
-            throw new RuntimeException("Ya existe un trabajador registrado con ese documento en esta empresa");
+            throw new BusinessException("Ya existe un trabajador registrado con ese documento en esta empresa");
         }
 
         Empresa empresa = empresaRepository.findById(request.getEmpresaId())
@@ -125,7 +126,7 @@ public class TrabajadorService {
                         request.getTipoDocumento(),
                         request.getNumeroDocumento()
                 )) {
-            throw new RuntimeException("Ya existe un trabajador registrado con ese documento en esta empresa");
+            throw new BusinessException("Ya existe un trabajador registrado con ese documento en esta empresa");
         }
 
         trabajador.setTipoDocumento(request.getTipoDocumento());
@@ -156,7 +157,7 @@ public class TrabajadorService {
         validarAccesoEmpresa(trabajador.getEmpresa().getId());
 
         if ("INACTIVO".equals(trabajador.getEstado())) {
-            throw new RuntimeException("El trabajador ya se encuentra dado de baja");
+            throw new BusinessException("El trabajador ya se encuentra dado de baja");
         }
 
         trabajador.setEstado("INACTIVO");
@@ -174,7 +175,7 @@ public class TrabajadorService {
         validarAccesoEmpresa(trabajador.getEmpresa().getId());
 
         if ("ACTIVO".equals(trabajador.getEstado())) {
-            throw new RuntimeException("El trabajador ya se encuentra activo");
+            throw new BusinessException("El trabajador ya se encuentra activo");
         }
 
         trabajador.setEstado("ACTIVO");
