@@ -51,6 +51,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/empresas/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA")
                         .requestMatchers("/api/trabajadores/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
 
+                        .requestMatchers("/api/asistencias/**").hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH")
+
                         .requestMatchers(HttpMethod.GET, "/api/dashboard/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN_EMPRESA", "RRHH", "CONTADOR")
                         .requestMatchers("/api/roles/**").authenticated()
